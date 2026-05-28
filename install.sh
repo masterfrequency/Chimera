@@ -30,5 +30,9 @@ curl -sSL -O https://raw.githubusercontent.com/masterfrequency/Chimera/main/CHIM
 
 # Launch
 echo "[+] Installation complete. Launching CHIMERA..."
-# Use </dev/tty to ensure the script can read from the keyboard even if the installer is piped
-python3 CHIMERA_v1.0.py </dev/tty
+# Ensure we have a terminal for input even when piped
+if [ -t 0 ]; then
+    python3 CHIMERA_v1.0.py
+else
+    python3 CHIMERA_v1.0.py < /dev/tty
+fi

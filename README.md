@@ -10,7 +10,7 @@ CHIMERA is a high-performance, autonomous breach engine designed for reconnaissa
 Run the following command to automatically install all dependencies and launch the CHIMERA interactive menu:
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/masterfrequency/Chimera/main/install.sh)
+curl -sSL https://raw.githubusercontent.com/masterfrequency/Chimera/main/install.sh | bash
 ```
 
 ## ✨ Features
