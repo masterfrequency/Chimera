@@ -782,7 +782,13 @@ class Recon:
                 ans = await resolver.resolve(name, qtype)
                 return [r.to_text() for r in ans]
             except Exception:
-                return []
+                # Second attempt with a small delay for stability in mobile/Termux environments
+                try:
+                    await asyncio.sleep(0.5)
+                    ans = await resolver.resolve(name, qtype)
+                    return [r.to_text() for r in ans]
+                except Exception:
+                    return []
 
     async def reverse_dns(self, ip: str) -> str:
         try:
@@ -1928,13 +1934,28 @@ class Autopilot:
         # Phase 1: Initial Reconnaissance Bootstrap
         live_hosts = await self.recon.subdomain_sweep(self.target)
         if not live_hosts:
-            root_ips = await self.recon.resolve(self.target)
-            if root_ips:
-                live_hosts = [(self.target, root_ips[0])]
-                await self.state.upsert_host(root_ips[0], self.target)
+            # Retry root resolution with multiple attempts (handles intermittent DNS issues)
+            for attempt in range(3):
+                self.log.dbg(f"Retrying root resolution for {self.target} (Attempt {attempt+1}/3)...")
+                root_ips = await self.recon.resolve(self.target)
+                if root_ips:
+                    live_hosts = [(self.target, root_ips[0])]
+                    await self.state.upsert_host(root_ips[0], self.target)
+                    break
+                await asyncio.sleep(2)
 
         if not live_hosts:
-            self.log.err("No hosts discovered. Operation aborted.")
+            # Final attempt: Check if the target is an IP address
+            try:
+                ipaddress.ip_address(self.target)
+                live_hosts = [(self.target, self.target)]
+                await self.state.upsert_host(self.target, self.target)
+            except ValueError:
+                pass
+
+        if not live_hosts:
+            self.log.err(f"No hosts discovered for {self.target}. Operation aborted.")
+            self.log.wrn("TIP: Ensure the target is reachable and DNS is configured correctly in Termux.")
             return
 
         # Phase 2: Autonomous Execution Loop
