@@ -14,8 +14,15 @@ echo "[*] Installing core dependencies..."
 pip3 install aiohttp dnspython requests llama-cpp-python paramiko --quiet
 
 # Optional UI Dependencies
-echo "[*] Checking for UI dependencies (pygame, colorama, tqdm)..."
-pip3 install pygame colorama tqdm --quiet || echo "[!] UI dependencies failed to install, continuing in headless mode..."
+echo "[*] Attempting to install UI dependencies (pygame, colorama, tqdm)..."
+# Suppress stderr to keep the output clean if build fails
+pip3 install pygame colorama tqdm --quiet 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "[!] UI dependencies (pygame) could not be built. CHIMERA will run in Headless Mode."
+    echo "[*] To enable UI/Audio, install SDL development libraries (e.g., 'pkg install pgl' or 'apt install libsdl2-dev')."
+else
+    echo "[+] UI dependencies installed successfully."
+fi
 
 # Download the script
 echo "[*] Downloading CHIMERA v1.0..."

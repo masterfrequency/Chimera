@@ -44,6 +44,13 @@ If you prefer to set up manually:
    python3 CHIMERA_v1.0.py
    ```
 
+### 🎨 Enabling Full UI & Audio (Optional)
+If you are running in a terminal-only environment like **Termux** or a headless Linux server, the UI dependencies (`pygame`) may fail to build due to missing SDL libraries. To enable the full interactive experience:
+
+- **Termux**: `pkg install x11-repo && pkg install pgl`
+- **Debian/Ubuntu**: `sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev`
+- **Arch Linux**: `sudo pacman -S sdl2 sdl2_image sdl2_mixer sdl2_ttf`
+
 ## 🧠 AI Integration
 
 CHIMERA supports a wide range of GGUF models for its Neural Cortex. Use the built-in downloader in the menu to fetch models ranging from TinyLlama (0.5GB) to Llama-2-70B (39GB).
