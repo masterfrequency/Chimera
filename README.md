@@ -1,7 +1,15 @@
 # CHIMERA — Autonomous Breach Engine v1.0
 ### ⚡️👾 by 🇭🇷 PhonkAlphabet 👾⚡️
 
-![CHIMERA Header](chimera_github_header_signed.png)
+![CHIMERA Header](chimera_header.gif)
+
+<p align="center">
+  <b>🔊 Click below to play the CHIMERA Theme (Chariots of Fire)</b><br>
+  <audio controls loop>
+    <source src="https://raw.githubusercontent.com/masterfrequency/Chimera/main/theme.aac" type="audio/aac">
+    Your browser does not support the audio element.
+  </audio>
+</p>
 
 CHIMERA is a high-performance, autonomous breach engine designed for reconnaissance, exploitation, and post-exploitation operations. It leverages advanced concurrency, neural cortex planning, and stealthy exfiltration protocols to provide a comprehensive offensive security toolkit.
 
