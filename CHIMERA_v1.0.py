@@ -458,6 +458,9 @@ class State:
     CREATE TABLE IF NOT EXISTS notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, msg TEXT
     );
+    CREATE TABLE IF NOT EXISTS target_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, target TEXT UNIQUE, last_used TEXT
+    );
     """
 
     def __init__(self, path: Path):
@@ -549,6 +552,17 @@ class State:
         await self.q_exec(
             "UPDATE sessions SET last_beacon=? WHERE id=?",
             (datetime.now(timezone.utc).isoformat(), sid))
+
+    async def add_target_to_history(self, target: str):
+        now = datetime.now(timezone.utc).isoformat()
+        await self.q_exec(
+            "INSERT INTO target_history(target, last_used) VALUES(?, ?) "
+            "ON CONFLICT(target) DO UPDATE SET last_used=excluded.last_used",
+            (target, now))
+
+    async def get_target_history(self, limit: int = 10) -> list[str]:
+        rows = await self.q("SELECT target FROM target_history ORDER BY last_used DESC LIMIT ?", (limit,))
+        return [r[0] for r in rows]
 
     async def add_loot(self, host_id: str, kind: str, path: str, data: bytes) -> str:
         sha = hashlib.sha256(data).hexdigest()
@@ -2334,6 +2348,29 @@ async def main():
     # Initialize the State Matrix (SQLite)
     state = State(ws / "state.db")
     log.ok("State Matrix initialized (WAL mode engaged)")
+
+    # Target Selection Logic (CLI & Interactive)
+    if not args.target:
+        history = await state.get_target_history()
+        if history:
+            print(f"\n{Fore.YELLOW}--- Target History ---{Style.RESET_ALL}")
+            for i, h in enumerate(history):
+                print(f" {i+1}. {h}")
+            print(f" n. New Target")
+            h_choice = safe_input(f"\n{Fore.CYAN}Select a target (1-{len(history)}) or 'n': {Style.RESET_ALL}")
+            if h_choice.isdigit() and 1 <= int(h_choice) <= len(history):
+                args.target = history[int(h_choice)-1]
+            else:
+                args.target = safe_input(f"{Fore.CYAN}Enter new target: {Style.RESET_ALL}")
+        else:
+            args.target = safe_input(f"{Fore.CYAN}Enter target: {Style.RESET_ALL}")
+
+    if not args.target:
+        log.err("No target specified. Exiting.")
+        sys.exit(1)
+
+    # Save target to history
+    await state.add_target_to_history(args.target)
 
     # Initialize the Neural Cortex
     planner = Planner(log, args.model)
