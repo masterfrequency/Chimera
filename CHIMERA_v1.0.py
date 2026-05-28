@@ -756,7 +756,11 @@ class Recon:
         self.sem_net = asyncio.Semaphore(MAX_CONCURRENT_RECON)
         self.dns_resolvers = []
         for r_ip in DNS_RESOLVERS:
-            res = dns.asyncresolver.Resolver()
+            try:
+                res = dns.asyncresolver.Resolver()
+            except Exception:
+                # Fallback for systems without /etc/resolv.conf (like Termux)
+                res = dns.asyncresolver.Resolver(configure=False)
             res.nameservers = [r_ip]
             res.lifetime = BASE_TIMEOUT + 1.0
             res.timeout = BASE_TIMEOUT
@@ -1692,7 +1696,11 @@ class Exfiltrator:
         self.sinks = sink_urls or DEFAULT_EXFIL_SINKS
         self.dns_resolvers = []
         for r_ip in DNS_RESOLVERS:
-            res = dns.asyncresolver.Resolver()
+            try:
+                res = dns.asyncresolver.Resolver()
+            except Exception:
+                # Fallback for systems without /etc/resolv.conf (like Termux)
+                res = dns.asyncresolver.Resolver(configure=False)
             res.nameservers = [r_ip]
             res.lifetime = BASE_TIMEOUT + 2.0
             res.timeout = BASE_TIMEOUT
