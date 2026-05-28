@@ -1977,9 +1977,23 @@ class Autopilot:
                 pass
 
         if not live_hosts:
-            self.log.err(f"No hosts discovered for {self.target}. Operation aborted.")
-            self.log.wrn("TIP: Ensure the target is reachable and DNS is configured correctly in Termux.")
-            return
+            self.log.err(f"No hosts discovered for {self.target} via DNS.")
+            self.log.wrn("Persistent DNS failure detected. Engaging manual IP fallback.")
+            try:
+                # Use a standard input fallback since we are in a terminal
+                manual_ip = input(f"\n[?] Enter IP address for {self.target} (or leave blank to abort): ").strip()
+                if manual_ip:
+                    try:
+                        ipaddress.ip_address(manual_ip)
+                        live_hosts = [(self.target, manual_ip)]
+                        await self.state.upsert_host(manual_ip, self.target)
+                    except ValueError:
+                        self.log.err("Invalid IP address entered. Operation aborted.")
+                        return
+                else:
+                    return
+            except (EOFError, KeyboardInterrupt):
+                return
 
         # Phase 2: Autonomous Execution Loop
         while self.running:
@@ -2370,6 +2384,9 @@ async def main():
         log.err("No target specified. Exiting.")
         sys.exit(1)
 
+    # Clean target URL (strip https:// and trailing slashes for better resolution)
+    args.target = args.target.split("://")[-1].split("/")[0]
+
     # Save target to history
     await state.add_target_to_history(args.target)
 
@@ -2395,11 +2412,8 @@ async def main():
         except asyncio.CancelledError:
             pass
 
-    # Clean target URL (strip https:// and trailing slashes for better resolution)
-    clean_target = args.target.split("://")[-1].split("/")[0]
-    
     # Initialize the Autopilot
-    autopilot = Autopilot(log, state, planner, recon, c2, lateral, persistence, exfil, erasure, clean_target)
+    autopilot = Autopilot(log, state, planner, recon, c2, lateral, persistence, exfil, erasure, args.target)
 
     # Signal handling for graceful self-destruction
     shutdown_triggered = asyncio.Event()
