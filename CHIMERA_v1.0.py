@@ -29,8 +29,9 @@ except: sys.exit("[-] pip install dnspython")
 def get_safe_resolver(configure: bool = True) -> dns.asyncresolver.Resolver:
     """Returns a DNS resolver, handling cases where /etc/resolv.conf is missing."""
     try:
-        return dns.asyncresolver.Resolver(configure=configure)
-    except (dns.resolver.NoResolverConfiguration, FileNotFoundError):
+        res = dns.asyncresolver.Resolver(configure=configure)
+        return res
+    except (dns.resolver.NoResolverConfiguration, FileNotFoundError, Exception):
         return dns.asyncresolver.Resolver(configure=False)
 try:    from llama_cpp import Llama; HAS_LLM = True
 except: HAS_LLM = False
