@@ -2131,21 +2131,41 @@ def play_music():
     except: pass
 
 def download_model(model_idx):
-    if not HAS_UI: return None
     name, size, url = AI_MODELS[model_idx]
     filename = url.split('/')[-1]
-    print(f"{Fore.CYAN}[*] Downloading {name}...{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}[*] Downloading {name} ({size})...{Style.RESET_ALL}")
     try:
         response = requests.get(url, stream=True)
         total_size = int(response.headers.get('content-length', 0))
-        with open(filename, 'wb') as f, tqdm(desc=filename, total=total_size, unit='B', unit_scale=True, unit_divisor=1024) as bar:
-            for data in response.iter_content(chunk_size=1024):
-                f.write(data)
-                bar.update(len(data))
+        
+        # Simple text-based progress bar for headless mode
+        def print_progress(current, total):
+            percent = (current / total) * 100
+            bar_len = 30
+            filled_len = int(bar_len * current // total)
+            bar = '█' * filled_len + '-' * (bar_len - filled_len)
+            print(f"\r[{bar}] {percent:.1f}% ({current/(1024*1024):.1f}MB / {total/(1024*1024):.1f}MB)", end="")
+
+        with open(filename, 'wb') as f:
+            if HAS_UI:
+                with tqdm(desc=filename, total=total_size, unit='B', unit_scale=True, unit_divisor=1024) as bar:
+                    for data in response.iter_content(chunk_size=1024*1024):
+                        f.write(data)
+                        bar.update(len(data))
+            else:
+                downloaded = 0
+                for data in response.iter_content(chunk_size=1024*1024):
+                    f.write(data)
+                    downloaded += len(data)
+                    print_progress(downloaded, total_size)
+                print() # New line after progress bar
+                
         print(f"{Fore.GREEN}[+] Successfully downloaded {filename}{Style.RESET_ALL}")
+        time.sleep(2) # Give user time to see the success message
         return filename
     except Exception as e:
-        print(f"{Fore.RED}[!] Error: {e}{Style.RESET_ALL}")
+        print(f"\n{Fore.RED}[!] Error: {e}{Style.RESET_ALL}")
+        time.sleep(3)
         return None
 
 def safe_input(prompt: str) -> str:
@@ -2214,10 +2234,17 @@ def main_menu():
             res = automatic_mode()
             if res: return res
         elif choice == '3':
-            print(f"\n{Fore.YELLOW}--- AI Models ---{Style.RESET_ALL}")
-            for i, (name, _, _) in enumerate(AI_MODELS): print(f"{i+1}. {name}")
-            m_choice = safe_input(f"\n{Fore.CYAN}Select (1-10) or 'b': {Style.RESET_ALL}")
-            if m_choice.isdigit() and 1 <= int(m_choice) <= 10: download_model(int(m_choice)-1)
+            while True:
+                os.system('clear')
+                print(CYAN_BANNER)
+                print(f"\n{Fore.YELLOW}--- AI Models Download ---{Style.RESET_ALL}")
+                for i, (name, size, _) in enumerate(AI_MODELS): 
+                    print(f"{i+1:2}. {name:25} | {size}")
+                print(" b. Back to Main Menu")
+                m_choice = safe_input(f"\n{Fore.CYAN}Select (1-10) or 'b': {Style.RESET_ALL}")
+                if m_choice.lower() == 'b': break
+                if m_choice.isdigit() and 1 <= int(m_choice) <= 10: 
+                    download_model(int(m_choice)-1)
         elif choice == '4': sys.exit(0)
 
 def parse_args():
