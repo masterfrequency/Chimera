@@ -2346,8 +2346,9 @@ async def main():
 
     try:
         autopilot_task = asyncio.create_task(autopilot.run())
+        shutdown_task = asyncio.create_task(shutdown_triggered.wait())
         done, pending = await asyncio.wait(
-            [autopilot_task, shutdown_triggered.wait()],
+            [autopilot_task, shutdown_task],
             return_when=asyncio.FIRST_COMPLETED)
         if shutdown_triggered.is_set():
             autopilot.running = False
