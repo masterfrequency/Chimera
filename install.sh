@@ -10,8 +10,12 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Install Dependencies
-echo "[*] Installing dependencies..."
-pip3 install aiohttp dnspython pygame requests tqdm colorama llama-cpp-python paramiko --quiet
+echo "[*] Installing core dependencies..."
+pip3 install aiohttp dnspython requests llama-cpp-python paramiko --quiet
+
+# Optional UI Dependencies
+echo "[*] Checking for UI dependencies (pygame, colorama, tqdm)..."
+pip3 install pygame colorama tqdm --quiet || echo "[!] UI dependencies failed to install, continuing in headless mode..."
 
 # Download the script
 echo "[*] Downloading CHIMERA v1.0..."

@@ -42,7 +42,9 @@ If you prefer to set up manually:
 
 2. **Install dependencies**:
    ```bash
-   pip3 install aiohttp dnspython pygame requests tqdm colorama llama-cpp-python paramiko
+   pip3 install aiohttp dnspython requests llama-cpp-python paramiko
+   # Optional for UI/Audio:
+   pip3 install pygame colorama tqdm
    ```
 
 3. **Launch CHIMERA**:

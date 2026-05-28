@@ -28,6 +28,25 @@ except: HAS_LLM = False
 try:    import paramiko; HAS_SSH = True
 except: HAS_SSH = False
 
+# ---- UI & Audio (Optional) ----
+try:
+    import pygame
+    from colorama import init, Fore, Style
+    from tqdm import tqdm
+    HAS_UI = True
+except ImportError:
+    HAS_UI = False
+    # Minimal mocks for when UI deps are missing
+    class MockColor:
+        def __getattr__(self, name): return ""
+    Fore = Style = MockColor()
+    class tqdm:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def update(self, *args): pass
+    def init(*args, **kwargs): pass
+
 # ============================================================
 #  0. CONSTANTS / CONFIG (SEGMENT 1: FULL IMPROVEMENT)
 # ============================================================
