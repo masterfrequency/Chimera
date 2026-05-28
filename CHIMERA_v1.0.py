@@ -2346,15 +2346,24 @@ async def main():
 
     try:
         autopilot_task = asyncio.create_task(autopilot.run())
+        # Wrap the event wait in a task to avoid "Passing coroutines is forbidden" in Python 3.11+
         shutdown_task = asyncio.create_task(shutdown_triggered.wait())
+        
         done, pending = await asyncio.wait(
-            [autopilot_task, shutdown_task],
-            return_when=asyncio.FIRST_COMPLETED)
+            {autopilot_task, shutdown_task},
+            return_when=asyncio.FIRST_COMPLETED
+        )
+        
+        # Cleanup tasks
+        for t in pending:
+            t.cancel()
+            
         if shutdown_triggered.is_set():
             autopilot.running = False
             try:
-                await asyncio.wait_for(autopilot_task, timeout=5.0)
-            except asyncio.TimeoutError:
+                # Ensure we wait for the autopilot task to finish its cleanup
+                await asyncio.wait_for(asyncio.shield(autopilot_task), timeout=5.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
                 autopilot_task.cancel()
     except Exception as e:
         log.err(f"Critical Autopilot failure: {e}")
