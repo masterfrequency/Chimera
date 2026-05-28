@@ -2148,6 +2148,13 @@ def download_model(model_idx):
         print(f"{Fore.RED}[!] Error: {e}{Style.RESET_ALL}")
         return None
 
+def safe_input(prompt: str) -> str:
+    try:
+        return input(prompt)
+    except (EOFError, KeyboardInterrupt):
+        print(f"\n{Fore.RED}[!] Input interrupted. Exiting...{Style.RESET_ALL}")
+        sys.exit(0)
+
 def manual_setup():
     target = ""
     ports = ""
@@ -2161,10 +2168,10 @@ def manual_setup():
         print(f"3. Set Exfiltration Sink: {Fore.GREEN}{exfil if exfil else 'Default'}{Style.RESET_ALL}")
         print("4. Launch CHIMERA")
         print("5. Back to Main Menu")
-        choice = input(f"\n{Fore.CYAN}Select an option: {Style.RESET_ALL}")
-        if choice == '1': target = input("Enter target: ")
-        elif choice == '2': ports = input("Enter ports: ")
-        elif choice == '3': exfil = input("Enter exfil URL: ")
+        choice = safe_input(f"\n{Fore.CYAN}Select an option: {Style.RESET_ALL}")
+        if choice == '1': target = safe_input("Enter target: ")
+        elif choice == '2': ports = safe_input("Enter ports: ")
+        elif choice == '3': exfil = safe_input("Enter exfil URL: ")
         elif choice == '4':
             if not target:
                 print(f"{Fore.RED}[!] Set target first.{Style.RESET_ALL}")
@@ -2176,14 +2183,14 @@ def automatic_mode():
     os.system('clear')
     print(CYAN_BANNER)
     print(f"\n{Fore.YELLOW}--- Automatic Mode ---{Style.RESET_ALL}")
-    target = input("Enter target: ")
+    target = safe_input("Enter target: ")
     if not target: return None
     models = [f for f in os.listdir('.') if f.endswith('.gguf')]
     model_path = ""
     if models:
         print(f"\n{Fore.CYAN}[*] Found AI models: {Style.RESET_ALL}")
         for i, m in enumerate(models): print(f"{i+1}. {m}")
-        m_choice = input(f"\n{Fore.CYAN}Select model (or 'n'): {Style.RESET_ALL}")
+        m_choice = safe_input(f"\n{Fore.CYAN}Select model (or 'n'): {Style.RESET_ALL}")
         if m_choice.isdigit() and 1 <= int(m_choice) <= len(models): model_path = models[int(m_choice)-1]
     return {"target": target, "auto": True, "model": model_path}
 
@@ -2199,7 +2206,7 @@ def main_menu():
         print("2. Automatic Mode (AI Driven)")
         print("3. Download AI Models")
         print("4. Exit")
-        choice = input(f"\n{Fore.CYAN}Select an option: {Style.RESET_ALL}")
+        choice = safe_input(f"\n{Fore.CYAN}Select an option: {Style.RESET_ALL}")
         if choice == '1':
             res = manual_setup()
             if res: return res
@@ -2209,7 +2216,7 @@ def main_menu():
         elif choice == '3':
             print(f"\n{Fore.YELLOW}--- AI Models ---{Style.RESET_ALL}")
             for i, (name, _, _) in enumerate(AI_MODELS): print(f"{i+1}. {name}")
-            m_choice = input(f"\n{Fore.CYAN}Select (1-10) or 'b': {Style.RESET_ALL}")
+            m_choice = safe_input(f"\n{Fore.CYAN}Select (1-10) or 'b': {Style.RESET_ALL}")
             if m_choice.isdigit() and 1 <= int(m_choice) <= 10: download_model(int(m_choice)-1)
         elif choice == '4': sys.exit(0)
 
