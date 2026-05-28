@@ -59,6 +59,7 @@ BANNER = r"""
  ▒ ▓███▀ ░░▓█▒░██▓░██░▒██▒   ░██▒░▒████▒░██▓ ▒██▒ ▓█   ▓██▒
               autonomous breach engine — v{v}  — PHALANX PROTOCOL
 """
+CYAN_BANNER = f"{Fore.CYAN}{BANNER.format(v=VERSION)}{Style.RESET_ALL}"
 
 # ---- Dynamic Hardware Scaling ----
 _CPU_COUNT = os.cpu_count() or 4
