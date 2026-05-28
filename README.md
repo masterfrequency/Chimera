@@ -6,7 +6,7 @@
 <p align="center">
   <b>🔊 Click below to play the CHIMERA Theme (Chariots of Fire)</b><br>
   <audio controls loop>
-    <source src="https://raw.githubusercontent.com/masterfrequency/Chimera/main/theme.aac" type="audio/aac">
+    <source src="https://raw.githubusercontent.com/masterfrequency/Chimera/main/theme.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
   </audio>
 </p>
