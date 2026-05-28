@@ -3,14 +3,6 @@
 
 ![CHIMERA Header](chimera_header.gif)
 
-<p align="center">
-  <b>🔊 Click below to play the CHIMERA Theme (Chariots of Fire)</b><br>
-  <audio controls loop>
-    <source src="https://raw.githubusercontent.com/masterfrequency/Chimera/main/theme.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
-</p>
-
 CHIMERA is a high-performance, autonomous breach engine designed for reconnaissance, exploitation, and post-exploitation operations. It leverages advanced concurrency, neural cortex planning, and stealthy exfiltration protocols to provide a comprehensive offensive security toolkit.
 
 ## 🚀 One-Liner Installation & Execution
@@ -28,7 +20,7 @@ curl -sSL https://raw.githubusercontent.com/masterfrequency/Chimera/main/install
 - **Phalanx Protocol**: Advanced persistence and lateral movement capabilities.
 - **Stealth Exfiltration**: Encrypted data exfiltration via multiple sinks (Discord, DNS, etc.).
 - **Anti-Forensic Cleanup**: Automated workspace sanitization and log erasure.
-- **Interactive UI**: Cyan ASCII menu with background music ("Chariots of Fire") and integrated model downloader.
+- **Interactive UI**: Cyan ASCII menu with an integrated model downloader and streamlined navigation.
 
 ## 🛠 Manual Setup
 
