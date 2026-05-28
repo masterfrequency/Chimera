@@ -21,6 +21,8 @@ from urllib.parse import urljoin, urlparse, quote
 # ---- soft deps -----------------------------------------------------
 try:    import aiohttp
 except: sys.exit("[-] pip install aiohttp")
+try:    import requests
+except: sys.exit("[-] pip install requests")
 try:    import dns.asyncresolver; import dns.reversename
 except: sys.exit("[-] pip install dnspython")
 try:    from llama_cpp import Llama; HAS_LLM = True
