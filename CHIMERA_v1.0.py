@@ -784,10 +784,18 @@ class Recon:
             except Exception:
                 # Second attempt with a small delay for stability in mobile/Termux environments
                 try:
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(1.0)
                     ans = await resolver.resolve(name, qtype)
                     return [r.to_text() for r in ans]
                 except Exception:
+                    # Final fallback: use system-level getaddrinfo (handles some Termux quirks)
+                    if qtype == "A":
+                        try:
+                            loop = asyncio.get_event_loop()
+                            addrinfo = await loop.getaddrinfo(name, None, family=socket.AF_INET)
+                            return [info[4][0] for info in addrinfo]
+                        except Exception:
+                            pass
                     return []
 
     async def reverse_dns(self, ip: str) -> str:
@@ -1935,14 +1943,14 @@ class Autopilot:
         live_hosts = await self.recon.subdomain_sweep(self.target)
         if not live_hosts:
             # Retry root resolution with multiple attempts (handles intermittent DNS issues)
-            for attempt in range(3):
-                self.log.dbg(f"Retrying root resolution for {self.target} (Attempt {attempt+1}/3)...")
+            for attempt in range(5):
+                self.log.dbg(f"Retrying root resolution for {self.target} (Attempt {attempt+1}/5)...")
                 root_ips = await self.recon.resolve(self.target)
                 if root_ips:
                     live_hosts = [(self.target, root_ips[0])]
                     await self.state.upsert_host(root_ips[0], self.target)
                     break
-                await asyncio.sleep(2)
+                await asyncio.sleep(3)
 
         if not live_hosts:
             # Final attempt: Check if the target is an IP address
@@ -2349,8 +2357,11 @@ async def main():
         except asyncio.CancelledError:
             pass
 
+    # Clean target URL (strip https:// and trailing slashes for better resolution)
+    clean_target = args.target.split("://")[-1].split("/")[0]
+    
     # Initialize the Autopilot
-    autopilot = Autopilot(log, state, planner, recon, c2, lateral, persistence, exfil, erasure, args.target)
+    autopilot = Autopilot(log, state, planner, recon, c2, lateral, persistence, exfil, erasure, clean_target)
 
     # Signal handling for graceful self-destruction
     shutdown_triggered = asyncio.Event()
