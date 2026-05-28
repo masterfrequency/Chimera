@@ -23,8 +23,15 @@ try:    import aiohttp
 except: sys.exit("[-] pip install aiohttp")
 try:    import requests
 except: sys.exit("[-] pip install requests")
-try:    import dns.asyncresolver; import dns.reversename
+try:    import dns.asyncresolver; import dns.reversename; import dns.resolver
 except: sys.exit("[-] pip install dnspython")
+
+def get_safe_resolver(configure: bool = True) -> dns.asyncresolver.Resolver:
+    """Returns a DNS resolver, handling cases where /etc/resolv.conf is missing."""
+    try:
+        return dns.asyncresolver.Resolver(configure=configure)
+    except (dns.resolver.NoResolverConfiguration, FileNotFoundError):
+        return dns.asyncresolver.Resolver(configure=False)
 try:    from llama_cpp import Llama; HAS_LLM = True
 except: HAS_LLM = False
 try:    import paramiko; HAS_SSH = True
@@ -756,11 +763,7 @@ class Recon:
         self.sem_net = asyncio.Semaphore(MAX_CONCURRENT_RECON)
         self.dns_resolvers = []
         for r_ip in DNS_RESOLVERS:
-            try:
-                res = dns.asyncresolver.Resolver()
-            except Exception:
-                # Fallback for systems without /etc/resolv.conf (like Termux)
-                res = dns.asyncresolver.Resolver(configure=False)
+            res = get_safe_resolver()
             res.nameservers = [r_ip]
             res.lifetime = BASE_TIMEOUT + 1.0
             res.timeout = BASE_TIMEOUT
@@ -1696,11 +1699,7 @@ class Exfiltrator:
         self.sinks = sink_urls or DEFAULT_EXFIL_SINKS
         self.dns_resolvers = []
         for r_ip in DNS_RESOLVERS:
-            try:
-                res = dns.asyncresolver.Resolver()
-            except Exception:
-                # Fallback for systems without /etc/resolv.conf (like Termux)
-                res = dns.asyncresolver.Resolver(configure=False)
+            res = get_safe_resolver()
             res.nameservers = [r_ip]
             res.lifetime = BASE_TIMEOUT + 2.0
             res.timeout = BASE_TIMEOUT
